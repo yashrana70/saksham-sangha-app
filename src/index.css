@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Saksham Vaishnav theme — saffron, deep indigo, ivory */
+    --background: 42 38% 97%;
+    --foreground: 220 60% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 60% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 60% 12%;
+
+    /* Saffron primary */
+    --primary: 28 92% 52%;
+    --primary-foreground: 42 38% 98%;
+    --primary-glow: 36 96% 60%;
+
+    /* Deep indigo secondary */
+    --secondary: 220 55% 18%;
+    --secondary-foreground: 42 38% 98%;
+
+    --muted: 38 30% 92%;
+    --muted-foreground: 220 20% 38%;
+
+    --accent: 45 85% 55%;
+    --accent-foreground: 220 60% 12%;
+
+    --destructive: 0 78% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 38 25% 86%;
+    --input: 38 25% 88%;
+    --ring: 28 92% 52%;
+
+    --radius: 0.85rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(28 92% 52%), hsl(36 96% 60%));
+    --gradient-divine: linear-gradient(135deg, hsl(220 55% 18%) 0%, hsl(28 92% 52%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(42 38% 97%), hsl(38 30% 92%));
+    --shadow-soft: 0 4px 20px -4px hsl(28 92% 52% / 0.18);
+    --shadow-elegant: 0 20px 60px -20px hsl(220 55% 18% / 0.25);
+
+    --sidebar-background: 220 55% 14%;
+    --sidebar-foreground: 42 38% 92%;
+    --sidebar-primary: 28 92% 52%;
+    --sidebar-primary-foreground: 42 38% 98%;
+    --sidebar-accent: 220 50% 22%;
+    --sidebar-accent-foreground: 42 38% 92%;
+    --sidebar-border: 220 50% 22%;
+    --sidebar-ring: 28 92% 52%;
+  }
+
+  .dark {
+    --background: 220 55% 8%;
+    --foreground: 42 38% 96%;
+    --card: 220 50% 12%;
+    --card-foreground: 42 38% 96%;
+    --popover: 220 50% 12%;
+    --popover-foreground: 42 38% 96%;
+    --primary: 28 92% 58%;
+    --primary-foreground: 220 55% 10%;
+    --secondary: 220 40% 22%;
+    --secondary-foreground: 42 38% 96%;
+    --muted: 220 40% 18%;
+    --muted-foreground: 38 20% 70%;
+    --accent: 45 85% 55%;
+    --accent-foreground: 220 55% 10%;
+    --border: 220 40% 22%;
+    --input: 220 40% 22%;
+    --ring: 28 92% 58%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  h1, h2, h3, .font-serif {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-divine { background: var(--gradient-divine); }
+  .bg-gradient-soft { background: var(--gradient-soft); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-elegant { box-shadow: var(--shadow-elegant); }
+
+  /* Premium Liquid Glass button */
+  .btn-liquid-glass {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(135deg,
+      hsl(var(--primary) / 0.85),
+      hsl(var(--primary-glow) / 0.75));
+    color: hsl(var(--primary-foreground));
+    border: 1px solid hsl(0 0% 100% / 0.35);
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.45),
+      inset 0 -1px 0 hsl(220 60% 12% / 0.15),
+      0 8px 24px -8px hsl(28 92% 52% / 0.55),
+      0 2px 6px -2px hsl(220 60% 12% / 0.2);
+    transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+    overflow: hidden;
+  }
+  .btn-liquid-glass::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      hsl(0 0% 100% / 0.35) 0%,
+      hsl(0 0% 100% / 0.05) 45%,
+      hsl(0 0% 100% / 0) 60%);
+    pointer-events: none;
+  }
+  .btn-liquid-glass::after {
+    content: "";
+    position: absolute; inset: -40% -20%;
+    background: radial-gradient(closest-side, hsl(0 0% 100% / 0.35), transparent 70%);
+    transform: translateX(-60%);
+    transition: transform .9s ease;
+    pointer-events: none;
+  }
+  .btn-liquid-glass:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.55),
+      inset 0 -1px 0 hsl(220 60% 12% / 0.18),
+      0 14px 36px -10px hsl(28 92% 52% / 0.65),
+      0 4px 10px -2px hsl(220 60% 12% / 0.25);
+  }
+  .btn-liquid-glass:hover::after { transform: translateX(60%); }
+  .btn-liquid-glass:active { transform: translateY(0); filter: brightness(0.98); }
+
+  .glass-card {
+    background: hsl(0 0% 100% / 0.55);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid hsl(0 0% 100% / 0.5);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.6),
+      0 20px 60px -20px hsl(220 55% 18% / 0.25);
+  }
+}
+
+/* Disable browser pull-to-refresh on mobile */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
