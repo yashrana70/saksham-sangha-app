@@ -442,6 +442,7 @@ export default function Dashboard() {
             ))}
           </div>
         </DialogContent>
+      </Dialog>
       <Dialog open={showEvents} onOpenChange={setShowEvents}>
         <DialogContent className="max-w-md">
           <DialogHeader>
