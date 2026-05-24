@@ -33,6 +33,8 @@ export default function Dashboard() {
   const [showRankings, setShowRankings] = useState(false);
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [showBirthdays, setShowBirthdays] = useState(false);
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [showEvents, setShowEvents] = useState(false);
   const quote = PRABHUPADA_QUOTES[new Date().getDate() % PRABHUPADA_QUOTES.length];
 
   useEffect(() => {
@@ -81,6 +83,20 @@ export default function Dashboard() {
       const { data: ev } = await supabase.from("vaishnav_events")
         .select("*").gte("event_date", today).order("event_date").limit(5);
       setUpcoming(ev || []);
+
+      if (ev && ev.length > 0) {
+        const todayMs = new Date(today).getTime();
+        const inTwoDaysMs = todayMs + (2 * 24 * 60 * 60 * 1000);
+        const recent = ev.filter(e => {
+          const eDateMs = new Date(e.event_date).getTime();
+          return eDateMs >= todayMs && eDateMs <= inTwoDaysMs;
+        });
+        setRecentEvents(recent);
+        if (recent.length > 0 && !sessionStorage.getItem("events_seen")) {
+          sessionStorage.setItem("events_seen", "1");
+          setTimeout(() => setShowEvents(true), 1200);
+        }
+      }
 
       // Fetch leaderboard via SECURITY DEFINER RPC (privacy-preserving aggregate)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -422,6 +438,31 @@ export default function Dashboard() {
                   May your devotion deepen, your chanting increase, and may you make rapid spiritual progress
                   under the shelter of Srila Prabhupada. Wishing you a very blessed Krishna conscious birthday! 🌸
                 </p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      <Dialog open={showEvents} onOpenChange={setShowEvents}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl flex items-center gap-2">
+              <CalendarDays className="h-6 w-6 text-primary" /> Upcoming Events
+            </DialogTitle>
+            <DialogDescription>Don't miss these important dates!</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            {recentEvents.map((e) => (
+              <div key={e.id} className="rounded-lg border bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-3xl">🪔</span>
+                  <div className="flex-1">
+                    <div className="font-serif text-lg">{e.title}</div>
+                    <div className="text-xs text-primary font-semibold">
+                      {new Date(e.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">{e.description || e.event_type}</p>
               </div>
             ))}
           </div>
