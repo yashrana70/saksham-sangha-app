@@ -70,23 +70,14 @@ export function AppSidebar() {
               {isAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === "/admin"}>
-                    <NavLink to="/admin" end onClick={handleNav} className="flex items-center gap-3">
+                    <a href={`https://admin-dashboard-three-rho-69.vercel.app?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
                       <Shield className="h-4 w-4" />
-                      {!collapsed && <span>Database Admin (App 1)</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-              {isStaff && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <a href={`https://admin-dashboard-three-rho-69.vercel.app?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
-                      <ShieldCheck className="h-4 w-4" />
-                      {!collapsed && <span>Open Admin Dashboard (App 2)</span>}
+                      {!collapsed && <span>Admin Dashboard</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
