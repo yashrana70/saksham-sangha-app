@@ -180,7 +180,7 @@ export default function Dashboard() {
               </p>
               {["admin", "operator", "volunteer"].includes(role) && (
                 <Button asChild variant="outline" className="mt-4 bg-white/10 border-white/30 text-white hover:bg-white/20 transition-colors">
-                  <a href={import.meta.env.VITE_ADMIN_URL || "https://admin-dashboard-three-rho-69.vercel.app"} target="_blank" rel="noopener noreferrer">
+                  <a href="https://admin-dashboard-three-rho-69.vercel.app" target="_blank" rel="noopener noreferrer">
                     Go to Dashboard
                   </a>
                 </Button>

@@ -80,7 +80,7 @@ export function AppSidebar() {
               {isStaff && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <a href={`${import.meta.env.VITE_ADMIN_URL || `https://admin-dashboard-three-rho-69.vercel.app`}?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
+                    <a href={`https://admin-dashboard-three-rho-69.vercel.app?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
                       <ShieldCheck className="h-4 w-4" />
                       {!collapsed && <span>Open Admin Dashboard (App 2)</span>}
                     </a>
