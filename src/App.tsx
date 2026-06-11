@@ -25,6 +25,7 @@ import Hierarchy from "./pages/Hierarchy";
 import AartiLibrary from "./pages/AartiLibrary";
 import DevoteeCommunity from "./pages/Community";
 import Messages from "./pages/Messages";
+import Donation from "./pages/Donation";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => {
                   <Route path="/aarti" element={<AartiLibrary />} />
                   <Route path="/community" element={<DevoteeCommunity />} />
                   <Route path="/messages" element={<Messages />} />
+                  <Route path="/donation" element={<Donation />} />
                   <Route path="/admin" element={<Admin />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

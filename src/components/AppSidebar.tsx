@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, User, BookOpenCheck, BarChart3, Calendar, CalendarDays, LogOut, Shield, ListChecks, Trophy, Network, BookOpen, Sun, Moon, Users, MessageCircle } from "lucide-react";
+import { Home, User, BookOpenCheck, BarChart3, Calendar, CalendarDays, LogOut, Shield, ListChecks, Trophy, Network, BookOpen, Sun, Moon, Users, MessageCircle, Heart } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
@@ -22,6 +22,7 @@ const items = [
   { key: "nav_leaderboard", url: "/leaderboard", icon: Trophy },
   { key: "nav_hierarchy", url: "/hierarchy", icon: Network },
   { key: "Community", url: "/community", icon: Users },
+  { key: "Donation & Books", url: "/donation", icon: Heart },
   { key: "Messages", url: "/messages", icon: MessageCircle },
 ];
 
