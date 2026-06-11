@@ -67,6 +67,7 @@ type Profile = {
   photo_url: string | null;
   family: ProfileFamily | null;
   parent_id: string | null;
+  iskcon_temple: string | null;
   created_at: string;
 };
 
@@ -81,6 +82,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [roleQ, setRoleQ] = useState("");
+  const [iskconFilter, setIskconFilter] = useState("ALL");
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [viewing, setViewing] = useState<Profile | null>(null);
   const [editing, setEditing] = useState<Profile | null>(null);
@@ -117,6 +119,7 @@ export default function Admin() {
       gender: p.gender || "",
       dob: p.dob || "",
       address: p.address || "",
+      iskcon_temple: p.iskcon_temple || "",
     });
   };
 
@@ -173,16 +176,21 @@ export default function Admin() {
   }, [isAdmin]);
 
   const filteredProfiles = useMemo(() => {
-    if (!q.trim()) return profiles;
+    let list = profiles;
+    if (iskconFilter !== "ALL") {
+      list = list.filter(p => p.iskcon_temple === iskconFilter);
+    }
+    if (!q.trim()) return list;
     const n = q.toLowerCase();
-    return profiles.filter(p =>
+    return list.filter(p =>
       (p.full_name || "").toLowerCase().includes(n) ||
       (p.email || "").toLowerCase().includes(n) ||
       (p.phone || "").toLowerCase().includes(n) ||
       (p.devotee_level || "").toLowerCase().includes(n) ||
-      (p.facilitator_name || "").toLowerCase().includes(n)
+      (p.facilitator_name || "").toLowerCase().includes(n) ||
+      (p.iskcon_temple || "").toLowerCase().includes(n)
     );
-  }, [profiles, q]);
+  }, [profiles, q, iskconFilter]);
 
   const filteredRoleProfiles = useMemo(() => {
     if (!roleQ.trim()) return profiles;
@@ -392,6 +400,19 @@ export default function Admin() {
                   <Input value={q} onChange={e => setQ(e.target.value)}
                     placeholder="Search name / email / phone…" className="pl-9 w-64" />
                 </div>
+                <Select value={iskconFilter} onValueChange={setIskconFilter}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter ISKCON Temple" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Temples</SelectItem>
+                    <SelectItem value="ISKCON GHAZIABAD">ISKCON GHAZIABAD</SelectItem>
+                    <SelectItem value="ISKCON NOIDA">ISKCON NOIDA</SelectItem>
+                    <SelectItem value="ISKCON VRINDAVAN">ISKCON VRINDAVAN</SelectItem>
+                    <SelectItem value="ISKCON DELHI">ISKCON DELHI</SelectItem>
+                    <SelectItem value="OTHER">OTHER</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button onClick={exportProfilesCSV} variant="outline" size="sm">
                   <Download className="h-4 w-4 mr-2" /> Export CSV
                 </Button>
@@ -640,6 +661,7 @@ export default function Admin() {
               <div><Label>Gender</Label><Input value={editForm.gender as string || ""} onChange={e => setEditForm({ ...editForm, gender: e.target.value })} /></div>
               <div><Label>Date of Birth</Label><Input type="date" value={editForm.dob as string || ""} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Address</Label><Input value={editForm.address as string || ""} onChange={e => setEditForm({ ...editForm, address: e.target.value })} /></div>
+              <div className="md:col-span-2"><Label>ISKCON Temple</Label><Input value={editForm.iskcon_temple as string || ""} onChange={e => setEditForm({ ...editForm, iskcon_temple: e.target.value })} /></div>
               <div className="md:col-span-2 flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
                 <Button onClick={saveEdit} disabled={savingEdit}>{savingEdit ? "Saving…" : "Save changes"}</Button>
