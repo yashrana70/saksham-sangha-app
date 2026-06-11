@@ -80,8 +80,8 @@ export function AppSidebar() {
               {isStaff && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <a href={`${import.meta.env.VITE_ADMIN_URL || `http://${window.location.hostname}:8081`}?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
-                      <Shield className="h-4 w-4" />
+                    <a href={`${import.meta.env.VITE_ADMIN_URL || `https://admin-dashboard-three-rho-69.vercel.app`}?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
+                      <ShieldCheck className="h-4 w-4" />
                       {!collapsed && <span>Saksham Connect ({roleString.charAt(0).toUpperCase() + roleString.slice(1)})</span>}
                     </a>
                   </SidebarMenuButton>
