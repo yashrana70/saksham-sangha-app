@@ -49,13 +49,21 @@ const OPERATORS_VOLUNTEERS= [
   "Shailija Mataji",
 ];
 
+const TEMPLES = [
+  "Iskcon Ayodhya",
+  "Iskcon Jankipurram",
+  "Saksham",
+  "Others"
+];
+
 const registerSchema = z.object({
   fullName: z.string().trim().min(2, "Name too short").max(100),
   email: z.string().trim().email().max(255),
   phone: z.string().trim().min(7).max(20),
   password: z.string().min(8, "Min 8 characters").max(72),
   devoteeLevel: z.string().min(1, "Select a level"),
- assignedMentor: z.string().trim().min(2).max(100),
+  assignedMentor: z.string().trim().min(2).max(100),
+  iskconTemple: z.string().min(1, "Select a temple"),
 });
 
 const loginSchema = z.object({
@@ -88,7 +96,7 @@ export default function Auth() {
   // register
   const [reg, setReg] = useState({
     fullName: "", email: "", phone: "", password: "",
-    devoteeLevel: "", assignedMentor: "",
+    devoteeLevel: "", assignedMentor: "", iskconTemple: "",
   });
   const [showRegPwd, setShowRegPwd] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
@@ -161,6 +169,7 @@ export default function Auth() {
           phone: parsed.data.phone,
           devotee_level: parsed.data.devoteeLevel,
           assigned_mentor: parsed.data.assignedMentor,
+          iskcon_temple: parsed.data.iskconTemple,
         },
       },
     });
@@ -383,6 +392,14 @@ export default function Auth() {
                           <SelectTrigger><SelectValue placeholder="Select OPERATOR/VOLUNTEER" /></SelectTrigger>
                           <SelectContent className="max-h-72">
                             {OPERATORS_VOLUNTEERS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div><Label>ISKCON Temple</Label>
+                        <Select value={reg.iskconTemple} onValueChange={v => setReg({...reg, iskconTemple: v})}>
+                          <SelectTrigger><SelectValue placeholder="Select Temple" /></SelectTrigger>
+                          <SelectContent>
+                            {TEMPLES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>

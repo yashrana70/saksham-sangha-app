@@ -73,6 +73,12 @@
     --border: 220 40% 22%;
     --input: 220 40% 22%;
     --ring: 28 92% 58%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(28 92% 58%), hsl(36 96% 66%));
+    --gradient-divine: linear-gradient(135deg, hsl(220 50% 12%) 0%, hsl(28 92% 40%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(220 55% 8%), hsl(220 50% 10%));
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
+    --shadow-elegant: 0 20px 60px -20px hsl(0 0% 0% / 0.5);
   }
 }
 

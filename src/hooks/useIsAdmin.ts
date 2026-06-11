@@ -6,6 +6,7 @@ export function useIsAdmin() {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
+  const [roleString, setRoleString] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +16,7 @@ export function useIsAdmin() {
     if (user?.email === "sonuranaas56@gmail.com") {
       setIsAdmin(true);
       setIsStaff(true);
+      setRoleString("admin");
       setLoading(false);
       return;
     }
@@ -38,9 +40,11 @@ export function useIsAdmin() {
         if (data) {
           setIsAdmin(data.role === "admin");
           setIsStaff(["admin", "operator", "volunteer"].includes(data.role));
+          setRoleString(data.role);
         } else {
           setIsAdmin(false);
           setIsStaff(false);
+          setRoleString("");
         }
         setLoading(false);
       }
@@ -48,5 +52,5 @@ export function useIsAdmin() {
     return () => { active = false; };
   }, [user]);
 
-  return { isAdmin, isStaff, loading };
+  return { isAdmin, isStaff, roleString, loading };
 }

@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "migrate:supabase-data": "node scripts/migrate-supabase-data.js",
+    "import:old-export": "node scripts/import-old-export.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -41,6 +43,7 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@radix-ui/react-visually-hidden": "^1.2.5",
     "@supabase/supabase-js": "^2.105.1",
     "@tanstack/react-query": "^5.83.0",
     "class-variance-authority": "^0.7.1",
@@ -80,6 +83,7 @@
     "globals": "^15.15.0",
     "jsdom": "^20.0.3",
     "postcss": "^8.5.6",
+    "puppeteer": "^25.0.4",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",

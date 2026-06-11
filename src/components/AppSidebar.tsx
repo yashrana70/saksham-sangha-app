@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, User, BookOpenCheck, BarChart3, Calendar, CalendarDays, LogOut, Shield, ListChecks, Trophy, Network, BookOpen, Sun, Moon, Users } from "lucide-react";
+import { Home, User, BookOpenCheck, BarChart3, Calendar, CalendarDays, LogOut, Shield, ListChecks, Trophy, Network, BookOpen, Sun, Moon, Users, MessageCircle } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar,
@@ -22,6 +22,7 @@ const items = [
   { key: "nav_leaderboard", url: "/leaderboard", icon: Trophy },
   { key: "nav_hierarchy", url: "/hierarchy", icon: Network },
   { key: "Community", url: "/community", icon: Users },
+  { key: "Messages", url: "/messages", icon: MessageCircle },
 ];
 
 import { useTheme } from "next-themes";
@@ -32,7 +33,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const { signOut, session } = useAuth();
-  const { isAdmin, isStaff } = useIsAdmin();
+  const { isAdmin, isStaff, roleString } = useIsAdmin();
   const { t } = useI18n();
   const handleNav = () => { if (isMobile) setOpenMobile(false); };
 
@@ -78,9 +79,9 @@ export function AppSidebar() {
               {isStaff && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <a href={`http://localhost:8081?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
+                    <a href={`${import.meta.env.VITE_ADMIN_URL || `http://${window.location.hostname}:8081`}?access_token=${session?.access_token || ''}&refresh_token=${session?.refresh_token || ''}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-purple-600 font-semibold bg-purple-50 hover:bg-purple-100 rounded-md p-2">
                       <Shield className="h-4 w-4" />
-                      {!collapsed && <span>Admin Dashboard (App 2)</span>}
+                      {!collapsed && <span>Saksham Connect ({roleString.charAt(0).toUpperCase() + roleString.slice(1)})</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

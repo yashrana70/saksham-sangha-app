@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,13 +13,12 @@ type Todo = {
   id: string;
   user_id: string;
   title: string;
-  description: string | null; // Storing the "due_time" here to avoid db schema changes
+  description: string | null;
   due_date: string | null;
   completed: boolean;
   completed_at: string | null;
 };
 
-// Local audio file for reliable playback without CORS or external server issues
 const HARE_KRISHNA_URL = "/hare_krishna.mp3";
 
 export default function DailyTodoList() {
@@ -32,70 +31,75 @@ export default function DailyTodoList() {
   const [adding, setAdding] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Keep track of which alarms have already rung to avoid spamming
-  const [rungAlarms, setRungAlarms] = useState<Set<string>>(new Set());
+  const [rungAlarms, setRungAlarms] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem("spark_rung_alarms") || "[]"));
+    } catch {
+      return new Set();
+    }
+  });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!user) return;
     const { data, error } = await supabase
-      .from("todo_items")
+      .from<Todo>("todo_items")
       .select("*")
       .eq("user_id", user.id)
       .order("completed", { ascending: true })
       .order("due_date", { ascending: true })
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setTodos((data as any) || []);
+    setTodos(data ?? []);
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
     setLoading(true);
     load();
-    
-    // Setup Audio
-    audioRef.current = new Audio(HARE_KRISHNA_URL);
-    audioRef.current.loop = false;
-  }, [user]);
+  }, [user, load]);
 
-  // Alarm Checker Interval
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
       const currentYMD = format(now, "yyyy-MM-dd");
-      const currentHM = format(now, "HH:mm");
 
       todos.forEach(t => {
-        if (!t.completed && t.due_date === currentYMD && t.description === currentHM) {
-          if (!rungAlarms.has(t.id)) {
-            // It's time!
-            if (audioRef.current) {
-              audioRef.current.play().catch(e => console.error("Audio play failed, user didn't interact yet:", e));
+        if (t.completed || !t.description || !t.due_date) return;
+        
+        try {
+          const timePart = t.description.substring(0, 5);
+          const scheduledTime = new Date(`${t.due_date}T${timePart}:00`);
+          
+          if (t.due_date === currentYMD && now >= scheduledTime) {
+            const alarmKey = `${t.id}-${currentYMD}-${timePart}`;
+            if (!rungAlarms.has(alarmKey)) {
+              setRungAlarms(prev => {
+                const next = new Set(prev);
+                next.add(alarmKey);
+                localStorage.setItem("spark_rung_alarms", JSON.stringify(Array.from(next)));
+                return next;
+              });
+              
+              if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+              }
+              
+              toast.message(`⏰ Time for: ${t.title}`, {
+                description: "Your scheduled routine is starting now!",
+                duration: 10000,
+              });
             }
-            toast("Hare Krishna! 🪔 It is time for your task!", {
-              description: t.title,
-              action: {
-                label: "Stop Audio",
-                onClick: () => stopAudio()
-              },
-              duration: 20000,
-            });
-            setRungAlarms(prev => new Set(prev).add(t.id));
           }
+        } catch (err) {
+          console.error(err);
         }
       });
-    }, 10000); // check every 10 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [todos, rungAlarms]);
-
-  const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  };
 
   const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +110,7 @@ export default function DailyTodoList() {
       user_id: user.id,
       title: title.trim(),
       due_date: dueDate || null,
-      description: dueTime || null, // Storing time in description
+      description: dueTime || null,
     });
     setAdding(false);
     if (error) { toast.error(error.message); return; }
@@ -123,7 +127,6 @@ export default function DailyTodoList() {
       .update({ completed: next, completed_at: next ? new Date().toISOString() : null })
       .eq("id", t.id);
     if (error) { toast.error(error.message); return; }
-    if (next && audioRef.current) stopAudio(); // stop if they check it off while ringing
     load();
   };
 
@@ -213,6 +216,7 @@ export default function DailyTodoList() {
           </div>
         )}
       </CardContent>
+      <audio ref={audioRef} src={HARE_KRISHNA_URL} preload="auto" />
     </Card>
   );
 }

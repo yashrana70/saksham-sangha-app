@@ -1,0 +1,62 @@
+id,title,event_date,event_type,description,created_at
+1b20687c-566e-41ec-a92a-9f07c2e9e145,Shat-tila Ekadashi,2026-01-14,ekadashi,"Madhava Masa (Magha), Krishna Paksha. Fast from grains till sunrise next day.",2026-04-29 04:47:47.166452+00
+2d1df140-4b07-4bdd-96c4-b9c814296644,Bhaimi Ekadashi (Trisparsha Mahadvadashi),2026-01-29,ekadashi,"Madhava Masa (Magha), Gaura Paksha. Special observance.",2026-04-29 04:47:47.166452+00
+82e84d6a-993b-4920-b09b-caa366055845,Vijaya Ekadashi,2026-02-13,ekadashi,"Govinda Masa (Phalguna), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+165f54bd-2d79-4ffd-ae9f-d6b96393de40,Amalaki Vrata Ekadashi,2026-02-27,ekadashi,"Govinda Masa (Phalguna), Gaura Paksha.",2026-04-29 04:47:47.166452+00
+d22e89b1-c6fb-4750-96a4-c366ac88ca6a,Papamochani Ekadashi,2026-03-14,ekadashi,"Vishnu Masa (Chaitra), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+dd5f11b5-6fec-4766-9de8-c2ddd1f1ff2d,Kamada Ekadashi,2026-03-29,ekadashi,"Vishnu Masa (Chaitra), Gaura Paksha.",2026-04-29 04:47:47.166452+00
+da363719-4602-4d89-98c5-968b89f6ba25,Varuthini Ekadashi,2026-04-13,ekadashi,"Madhusudana Masa (Vaishakha), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+2556264a-b737-464b-8949-269041b8f686,Mohini Ekadashi,2026-04-27,ekadashi,"Madhusudana Masa (Vaishakha), Gaura Paksha.",2026-04-29 04:47:47.166452+00
+9f7ccfef-7b6f-4a83-885b-8dc3cfaebb08,Apara Ekadashi,2026-05-13,ekadashi,"Trivikrama Masa (Jyeshtha), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+8bc6cf19-db1e-4fd4-9167-0b7163da9675,Padmini Ekadashi (Vyanjuli Mahadvadashi),2026-05-27,ekadashi,"Adhika/Trivikrama Masa, Gaura Paksha.",2026-04-29 04:47:47.166452+00
+7c559a1c-45fb-4493-b83f-ec025a9da6b0,Parama Ekadashi,2026-06-11,ekadashi,"Adhika/Trivikrama Masa, Krishna Paksha.",2026-04-29 04:47:47.166452+00
+823604b1-7a3a-45c5-9168-14b5dd26b771,Pandava Nirjala Ekadashi,2026-06-25,ekadashi,"Trivikrama Masa (Jyeshtha), Gaura Paksha. Waterless fast.",2026-04-29 04:47:47.166452+00
+be26457f-e3ee-4c69-9da4-5ca57d00b6b7,Yogini Ekadashi,2026-07-11,ekadashi,"Vamana Masa (Ashadha), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+f438e8ad-e5b4-429b-8551-b852c65f817d,Sayana Ekadashi (Devshayani),2026-07-25,ekadashi,"Vamana Masa (Ashadha), Gaura Paksha. Lord Vishnu begins yogic sleep — Chaturmasya begins.",2026-04-29 04:47:47.166452+00
+3830eb71-3f66-4252-a815-26a781055983,Kamika Ekadashi (Trisparsha Mahadvadashi),2026-08-09,ekadashi,"Shridhara Masa (Shravana), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+98034cc4-ed3d-40d2-864e-ecedfb318619,Pavitropana Ekadashi (Paksha Vardhini Mahadvadashi),2026-08-24,ekadashi,"Shridhara Masa (Shravana), Gaura Paksha.",2026-04-29 04:47:47.166452+00
+53362826-0d5f-4eff-a11b-37ab55290500,Annada Ekadashi,2026-09-07,ekadashi,"Hrishikesha Masa (Bhadra), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+3d12dd44-7944-4a7c-9865-4f24e945e82f,Parshva Ekadashi (Parivartini),2026-09-22,ekadashi,"Hrishikesha Masa (Bhadra), Gaura Paksha. Lord Vishnu turns over in His sleep.",2026-04-29 04:47:47.166452+00
+623e911b-2f75-4a95-a30d-096fe83aeeef,Indira Ekadashi,2026-10-06,ekadashi,"Padmanabha Masa (Ashvina), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+a79a3d93-7bd1-41bc-b972-9580fab5af30,Pashankusha Ekadashi,2026-10-22,ekadashi,"Padmanabha Masa (Ashvina), Gaura Paksha.",2026-04-29 04:47:47.166452+00
+4699e2d0-5790-4a5b-9145-dfb5deb414a7,Rama Ekadashi,2026-11-05,ekadashi,"Damodara Masa (Kartika), Krishna Paksha.",2026-04-29 04:47:47.166452+00
+0178242c-d6d8-4ce0-8876-5ec8f51ec9da,Utthana Ekadashi (Prabodhini),2026-11-20,ekadashi,"Damodara Masa (Kartika), Gaura Paksha. Lord Vishnu awakens — Chaturmasya ends.",2026-04-29 04:47:47.166452+00
+e12ba1de-30f7-44a6-a36e-189b8f4d32c6,Utpanna Ekadashi,2026-12-04,ekadashi,"Keshava Masa (Margashirsha), Krishna Paksha. Birth of Goddess Ekadashi.",2026-04-29 04:47:47.166452+00
+54db437d-65bf-4c80-b067-9a9b02fe3a8d,Mokshada Ekadashi (Gita Jayanti),2026-12-20,ekadashi,"Keshava Masa (Margashirsha), Gaura Paksha. Day Bhagavad-gita was spoken.",2026-04-29 04:47:47.166452+00
+d9a18cfc-c885-4a6b-95fa-5bef10447267,Sri Krishna Pushya Abhishek,2026-01-03,festival,Auspicious abhishek of Lord Sri Krishna.,2026-04-29 04:47:47.166452+00
+15201178-5b35-4286-a7fc-21a594d7a3a0,Appearance — Srila Gopala Bhatta Goswami,2026-01-07,appearance,One of the Six Goswamis of Vrindavan.,2026-04-29 04:47:47.166452+00
+488e87ae-aefe-4daa-847a-0e055187ae69,Disappearance — Sri Jayadeva Goswami,2026-01-08,disappearance,Author of Sri Gita Govinda.,2026-04-29 04:47:47.166452+00
+7f31712b-d26b-4754-966c-c049b1c82235,Disappearance — Srila Locana Dasa Thakura,2026-01-09,disappearance,Author of Sri Caitanya Mangala.,2026-04-29 04:47:47.166452+00
+6083579d-88be-4d53-b90a-3e96962fc2d6,Vasanta Panchami / Sri Visnupriya Devi Appearance,2026-01-23,festival,"Appearance of Sri Sri Visnupriya Devi, Srila Pundarika Vidyanidhi, Srila Raghunatha Dasa Goswami.",2026-04-29 04:47:47.166452+00
+7f67d13e-fa7e-4111-ae52-bcdce2874f9c,Sri Gaura Purnima — Appearance of Sri Chaitanya Mahaprabhu,2026-03-03,festival,Most important festival of the Gaudiya Vaishnava year. Fast till moonrise.,2026-04-29 04:47:47.166452+00
+ece9ed2b-0b25-4e31-b99f-b37e9ee28628,Festival of Jagannatha Misra,2026-03-04,festival,Father of Sri Caitanya Mahaprabhu — celebration the day after Gaura Purnima.,2026-04-29 04:47:47.166452+00
+e2f099d4-2b9a-491b-9fd6-211d4e6a4b9c,Sri Rama Navami,2026-03-27,festival,Appearance of Lord Sri Ramachandra. Fasting till sunset.,2026-04-29 04:47:47.166452+00
+d2307492-1fbf-4922-a60b-0002fcc6b6e3,Hanuman Jayanti,2026-04-02,festival,Appearance day of Sri Hanuman.,2026-04-29 04:47:47.166452+00
+89ec298e-b2e1-40e9-8e10-b50f1d6c32cd,Beginning of Salagrama & Tulasi Jala-Dana,2026-04-14,festival,Daily offering of water to Tulasi Devi & Salagrama begins.,2026-04-29 04:47:47.166452+00
+55676296-1093-42b4-b24d-b38e86b6f0b9,Akshaya Tritiya & Chandan Yatra begins,2026-04-20,festival,Sri Srinivasa Govinda Chandan Yatra begins.,2026-04-29 04:47:47.166452+00
+9b538688-67f3-481c-9091-926fbf121f96,Nrsimha Caturdasi — Appearance of Lord Nrsimhadeva,2026-04-30,festival,Fasting till dusk; offer abhishek to Lord Nrsimha.,2026-04-29 04:47:47.166452+00
+a158e3f7-f961-438d-bdf2-6318da227520,End of Salagrama & Tulasi Jala-Dana,2026-05-14,festival,Concludes one month of water-offering to Tulasi Devi.,2026-04-29 04:47:47.166452+00
+8fe75d3f-437f-4b6a-aa98-79a7d5c9faf7,Srila Prabhupada Eka-Diksha-Guru Vijayotsava,2026-05-16,festival,Vishvaguru observance.,2026-04-29 04:47:47.166452+00
+9daf6e8b-df89-4097-9c33-63f7e010652f,Panihati Chida-Dahi Utsava,2026-06-27,festival,Famous chipped-rice and yogurt festival of Sri Raghunatha Dasa Goswami.,2026-04-29 04:47:47.166452+00
+9e970da8-4d7d-4200-86e3-00e917d5787c,Jagannatha Snana Yatra,2026-06-29,festival,Bathing festival of Lord Jagannatha.,2026-04-29 04:47:47.166452+00
+2c1a2798-ba46-4f5d-bdc8-bb66072de2bb,Disappearance — Srila Bhaktivinoda Thakura,2026-07-14,disappearance,Founder of modern Gaudiya Vaishnava preaching.,2026-04-29 04:47:47.166452+00
+7541a89e-4a50-457f-bcb2-21a69e55873f,Sri Jagannatha Ratha Yatra,2026-07-16,festival,"Lord Jagannatha, Baladeva & Subhadra Devi travel to Gundicha temple.",2026-04-29 04:47:47.166452+00
+cef77a68-c34a-4ea6-aadf-9dfa940723cd,Sudarshana Jayanti,2026-07-21,festival,Appearance of the Sudarshana Chakra.,2026-04-29 04:47:47.166452+00
+4fd5b55b-63a8-43fb-9b9b-03dfc5803803,Bahuda Ratha Yatra (Return),2026-07-24,festival,Lord Jagannatha returns from Gundicha to Sri Mandir.,2026-04-29 04:47:47.166452+00
+8ee2c632-edda-4962-aa1d-6f384d8fc461,First month of Chaturmasya begins,2026-07-29,festival,Fast from leafy vegetables (shak) for one month.,2026-04-29 04:47:47.166452+00
+731f8064-00cc-4213-8061-c1766f0d4aa1,Jhulan Yatra begins,2026-08-23,festival,Swing festival of Sri Sri Radha-Krishna.,2026-04-29 04:47:47.166452+00
+6bee5711-977d-4673-ae66-1a5cb84c7d0e,Sri Balarama Jayanti / Jhulan Yatra ends,2026-08-28,festival,Appearance of Lord Balarama. Second month of Chaturmasya begins (fast from yogurt). Fast till noon.,2026-04-29 04:47:47.166452+00
+4e079901-14b7-4a90-a65b-62294257f19b,Sri Krishna Janmashtami,2026-09-04,festival,Appearance of Lord Sri Krishna. Fast till midnight.,2026-04-29 04:47:47.166452+00
+8f091fbc-cfc8-410c-a7fc-6ce2c00b733d,Nandotsava & Srila Prabhupada Vyasa Puja,2026-09-05,festival,Appearance of His Divine Grace A.C. Bhaktivedanta Swami Srila Prabhupada. Fast till noon.,2026-04-29 04:47:47.166452+00
+fe880298-4c93-492f-b105-57dd81850a56,Sri Radhastami — Appearance of Srimati Radharani,2026-09-19,festival,Fast till noon.,2026-04-29 04:47:47.166452+00
+5845bb4d-0c78-43fc-80e1-7cbf8918f566,Vamana Jayanti — Appearance of Lord Vamanadeva,2026-09-23,festival,Fast observed previous day till noon.,2026-04-29 04:47:47.166452+00
+7f16ad86-9122-427d-9f0f-8a83c17bc7d2,Appearance — Srila Bhaktivinoda Thakura,2026-09-24,appearance,Fast till noon.,2026-04-29 04:47:47.166452+00
+a2d41a77-d26f-4710-b2f9-b0d707e072b8,Third month of Chaturmasya begins,2026-09-26,festival,Fast from milk for one month.,2026-04-29 04:47:47.166452+00
+552effba-227e-4396-a489-3538f9931217,Vijaya Dashami (Dasara),2026-10-21,festival,Victory of Lord Rama over Ravana.,2026-04-29 04:47:47.166452+00
+24ff0581-60ef-4ed1-a9ae-08c92afcc0f1,Fourth month of Chaturmasya / Karthika Deepotsava begins,2026-10-26,festival,Fast from urad dal; daily lamp offering to Sri Damodara begins.,2026-04-29 04:47:47.166452+00
+6f36bfc4-b525-4d60-aeda-6b0b90c9499a,Govardhana Puja & Go Puja,2026-11-10,festival,Worship of Sri Giri-Govardhana and the cows. Annakuta offering.,2026-04-29 04:47:47.166452+00
+e0798a50-78a7-44c0-8e84-d08f8bcfff49,Disappearance — Srila Prabhupada,2026-11-13,disappearance,Disappearance day of His Divine Grace A.C. Bhaktivedanta Swami Srila Prabhupada. Fast till noon.,2026-04-29 04:47:47.166452+00
+a65cd539-2446-4488-8801-0c567c85aa78,Disappearance — Srila Gaura Kishora Dasa Babaji,2026-11-21,disappearance,Diksha-guru of Srila Bhaktisiddhanta Saraswati Thakura.,2026-04-29 04:47:47.166452+00
+cfdce313-ed64-4f98-a387-5565358e7a30,Last day of Chaturmasya & Deepotsava,2026-11-24,festival,Concludes the four months of austerity.,2026-04-29 04:47:47.166452+00
+eee1c877-1de6-4c4f-b08f-d4c9f06a2efc,Srila Prabhupada Diksha Diwasa,2026-12-01,festival,Initiation day of Srila Prabhupada.,2026-04-29 04:47:47.166452+00
+c7383316-35f8-4ab5-94fb-f78179541ed3,Disappearance — Srila Bhaktisiddhanta Saraswati Thakura,2026-12-27,disappearance,Spiritual master of Srila Prabhupada. Fast till noon.,2026-04-29 04:47:47.166452+00

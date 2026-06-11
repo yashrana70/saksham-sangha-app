@@ -26,6 +26,9 @@ export default function Profile() {
     education: "", profession: "", marital_status: "", address: "",
     devotee_level: "", facilitator_name: "", photo_url: "",
     bhakti_vriksha_level: "" as string,
+    spiritual_background: "", joined_iskcon_date: "",
+    iskcon_intro_source: "", started_japa_date: "", diksha_date: "",
+    saksham_seva_start_date: "", saksham_vision: "",
   });
   const [family, setFamily] = useState({
     father: { name: "", occupation: "", dob: "" },
@@ -48,6 +51,10 @@ export default function Profile() {
           address: d.address || "", devotee_level: d.devotee_level || "",
           facilitator_name: d.facilitator_name || "", photo_url: d.photo_url || "",
           bhakti_vriksha_level: d.bhakti_vriksha_level ? String(d.bhakti_vriksha_level) : "",
+          spiritual_background: d.spiritual_background || "", joined_iskcon_date: d.joined_iskcon_date || "",
+          iskcon_intro_source: d.iskcon_intro_source || "", started_japa_date: d.started_japa_date || "",
+          diksha_date: d.diksha_date || "", saksham_seva_start_date: d.saksham_seva_start_date || "",
+          saksham_vision: d.saksham_vision || "",
         });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fam = (d.family as any) || {};
@@ -70,7 +77,8 @@ export default function Profile() {
     if (error) { toast.error(error.message); return; }
     const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
     setP(prev => ({ ...prev, photo_url: data.publicUrl }));
-    toast.success("Photo uploaded");
+    await supabase.from("profiles").update({ photo_url: data.publicUrl }).eq("id", user.id);
+    toast.success("Photo uploaded and saved! 🙏");
   };
 
   const save = async () => {
@@ -79,6 +87,10 @@ export default function Profile() {
     const { error } = await supabase.from("profiles").update({
       ...p,
       dob: p.dob || null,
+      joined_iskcon_date: p.joined_iskcon_date || null,
+      started_japa_date: p.started_japa_date || null,
+      diksha_date: p.diksha_date || null,
+      saksham_seva_start_date: p.saksham_seva_start_date || null,
       bhakti_vriksha_level: p.bhakti_vriksha_level ? Number(p.bhakti_vriksha_level) : null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       family: family as any,
@@ -152,7 +164,7 @@ export default function Profile() {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Education (optional)</Label><Input value={p.education} onChange={e => setP({...p, education: e.target.value})} /></div>
+          <div><Label>Qualification (Education)</Label><Input value={p.education} onChange={e => setP({...p, education: e.target.value})} /></div>
           <div><Label>Profession (optional)</Label><Input value={p.profession} onChange={e => setP({...p, profession: e.target.value})} /></div>
           <div><Label>Devotee Level</Label><Input value={p.devotee_level} onChange={e => setP({...p, devotee_level: e.target.value})} /></div>
           <div><Label>Bhakti Vriksha Level</Label>
@@ -166,9 +178,22 @@ export default function Profile() {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Facilitator Name</Label><Input value={p.facilitator_name} onChange={e => setP({...p, facilitator_name: e.target.value})} /></div>
+          <div><Label>Counselor / Under Guidance</Label><Input value={p.facilitator_name} onChange={e => setP({...p, facilitator_name: e.target.value})} /></div>
           <div className="md:col-span-2"><Label>Full Address</Label>
             <Textarea value={p.address} onChange={e => setP({...p, address: e.target.value})} rows={3} /></div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="font-serif">Spiritual Journey</CardTitle></CardHeader>
+        <CardContent className="grid md:grid-cols-2 gap-4">
+          <div className="md:col-span-2"><Label>Spiritual Background</Label><Textarea value={p.spiritual_background} onChange={e => setP({...p, spiritual_background: e.target.value})} rows={2} /></div>
+          <div><Label>Date Joining ISKCON</Label><Input type="date" value={p.joined_iskcon_date} onChange={e => setP({...p, joined_iskcon_date: e.target.value})} /></div>
+          <div className="md:col-span-2"><Label>How did you know about ISKCON (in short)?</Label><Textarea value={p.iskcon_intro_source} onChange={e => setP({...p, iskcon_intro_source: e.target.value})} rows={2} /></div>
+          <div><Label>Started Japa (Date)</Label><Input type="date" value={p.started_japa_date} onChange={e => setP({...p, started_japa_date: e.target.value})} /></div>
+          <div><Label>Diksha Date (optional)</Label><Input type="date" value={p.diksha_date} onChange={e => setP({...p, diksha_date: e.target.value})} /></div>
+          <div><Label>Date started Seva in Saksham</Label><Input type="date" value={p.saksham_seva_start_date} onChange={e => setP({...p, saksham_seva_start_date: e.target.value})} /></div>
+          <div className="md:col-span-2"><Label>What is your Vision & Mission about Saksham?</Label><Textarea value={p.saksham_vision} onChange={e => setP({...p, saksham_vision: e.target.value})} rows={3} /></div>
         </CardContent>
       </Card>
 

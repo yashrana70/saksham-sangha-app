@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,13 +11,44 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, MessageSquare, Trash2, Send, ImageIcon, AlertCircle } from "lucide-react";
+import { Heart, MessageSquare, Trash2, Send, ImageIcon, AlertCircle, X as XIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+type CommunityProfile = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
+type CommunityLike = {
+  id: string;
+  user_id: string;
+};
+
+type CommunityComment = {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  profiles: CommunityProfile | null;
+};
+
+type CommunityPost = {
+  id: string;
+  user_id: string;
+  content: string;
+  image_url: string | null;
+  post_type: string | null;
+  created_at: string;
+  profiles: CommunityProfile | null;
+  community_likes: CommunityLike[];
+  community_comments: CommunityComment[];
+};
 
 export default function Community() {
   const { user } = useAuth();
@@ -26,13 +57,13 @@ export default function Community() {
   const queryClient = useQueryClient();
 
   const [newPostContent, setNewPostContent] = useState("");
-  const [newPostImage, setNewPostImage] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [postType, setPostType] = useState("standard");
-  const [showImageInput, setShowImageInput] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [commentContent, setCommentContent] = useState("");
 
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery<CommunityPost[]>({
     queryKey: ["community_posts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,16 +77,46 @@ export default function Community() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return (data as CommunityPost[]) ?? [];
     },
   });
 
+  // Real-time fast reloading
+  useEffect(() => {
+    const channel = supabase.channel("community-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "community_posts" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["community_posts"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "community_comments" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["community_posts"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "community_likes" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["community_posts"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const createPostMutation = useMutation({
     mutationFn: async () => {
+      let uploadedImageUrl = null;
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${user!.id}/${fileName}`;
+        const { error: uploadError } = await supabase.storage.from("community").upload(filePath, selectedFile);
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from("community").getPublicUrl(filePath);
+        uploadedImageUrl = data.publicUrl;
+      }
+
       const { error } = await supabase.from("community_posts").insert({
         user_id: user!.id,
         content: newPostContent,
-        image_url: newPostImage || null,
+        image_url: uploadedImageUrl,
         post_type: postType,
       });
       if (error) throw error;
@@ -63,13 +124,14 @@ export default function Community() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["community_posts"] });
       setNewPostContent("");
-      setNewPostImage("");
-      setShowImageInput(false);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setPostType("standard");
       toast({ title: "Post created!" });
     },
-    onError: (error: any) => {
-      toast({ title: "Failed to post", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({ title: "Failed to post", description: message, variant: "destructive" });
     },
   });
 
@@ -139,132 +201,189 @@ export default function Community() {
   if (isLoading) return <div className="p-8 text-center">Loading Community Feed...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
-      <h1 className="text-3xl font-serif font-bold text-center mb-8">Devotee Community</h1>
-
-      <Card className="shadow-md">
-        <CardContent className="p-4">
-          <form onSubmit={handleCreatePost} className="space-y-4">
-            <Textarea
-              placeholder="Share a realization, kirtan update, or ask a question..."
-              value={newPostContent}
-              onChange={(e) => setNewPostContent(e.target.value)}
-              className="resize-none border-0 focus-visible:ring-0 text-lg p-0"
-              rows={3}
-            />
-            {showImageInput && (
-              <Input
-                placeholder="Paste an Image URL here..."
-                value={newPostImage}
-                onChange={(e) => setNewPostImage(e.target.value)}
+    <div className="max-w-2xl w-full mx-auto py-4 md:py-6 px-2 sm:px-4 space-y-6 overflow-x-hidden">
+      <Card className="shadow-sm border border-border bg-card w-full">
+        <CardContent className="p-3 sm:p-4 space-y-3">
+          <div className="flex gap-3 items-start">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+              <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "?"}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 bg-muted/50 rounded-2xl p-2 px-4 flex items-center cursor-text">
+              <Textarea
+                placeholder="What's on your mind, Devotee?"
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                className="resize-none border-0 bg-transparent focus-visible:ring-0 text-base p-0 min-h-[40px] shadow-none w-full"
+                rows={newPostContent ? 3 : 1}
               />
-            )}
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex gap-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => setShowImageInput(!showImageInput)}>
-                  <ImageIcon className="h-5 w-5 mr-2 text-primary" /> Image URL
-                </Button>
-                {isAdmin && (
-                  <Select value={postType} onValueChange={setPostType}>
-                    <SelectTrigger className="w-[140px] h-9">
-                      <SelectValue placeholder="Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="standard">Standard</SelectItem>
-                      <SelectItem value="qna">Q&A</SelectItem>
-                      <SelectItem value="announcement">Announcement</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              <Button type="submit" disabled={!newPostContent.trim() || createPostMutation.isPending}>
-                Post
+            </div>
+          </div>
+          {selectedFile && (
+            <div className="pl-12 pr-2 pb-2 flex items-center gap-2">
+              <span className="text-sm text-muted-foreground truncate max-w-[200px] bg-muted/50 px-2 py-1 rounded-md">{selectedFile.name}</span>
+              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-destructive" onClick={() => setSelectedFile(null)}>
+                <XIcon className="h-4 w-4" />
               </Button>
             </div>
-          </form>
+          )}
+          <div className="flex items-center justify-between pt-2 border-t flex-wrap gap-2">
+            <div className="flex gap-1 flex-wrap">
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setSelectedFile(e.target.files[0]);
+                }
+              }} />
+              <Button type="button" variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} className="text-muted-foreground hover:bg-muted/50 rounded-lg">
+                <ImageIcon className="h-5 w-5 mr-2 text-green-500" /> Photo/Video
+              </Button>
+              {isAdmin && (
+                <Select value={postType} onValueChange={setPostType}>
+                  <SelectTrigger className="w-[140px] h-9 border-0 bg-transparent shadow-none hover:bg-muted/50 text-muted-foreground font-medium">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="qna">Q&A</SelectItem>
+                    <SelectItem value="announcement">Announcement</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <Button 
+              type="submit" 
+              onClick={handleCreatePost}
+              disabled={!newPostContent.trim() || createPostMutation.isPending}
+              className="rounded-lg font-bold px-6"
+            >
+              Post
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
       <div className="space-y-6">
-        {posts?.map((post: any) => {
-          const isLiked = post.community_likes.some((like: any) => like.user_id === user?.id);
+        {posts?.map(post => {
+          const isLiked = post.community_likes.some(like => like.user_id === user?.id);
           const isQnA = post.post_type === "qna";
           const isAnnouncement = post.post_type === "announcement";
 
           return (
-            <Card key={post.id} className={`shadow-sm overflow-hidden ${isQnA ? 'border-amber-400 border-2' : ''} ${isAnnouncement ? 'border-primary border-2' : ''}`}>
+            <Card key={post.id} className={`shadow-sm border bg-card mb-4 ${isQnA ? 'border-amber-400 border-2' : ''} ${isAnnouncement ? 'border-primary border-2' : ''}`}>
               {isQnA && (
-                <div className="bg-amber-100 text-amber-800 text-xs font-bold px-4 py-1 flex items-center gap-1 uppercase tracking-wider">
+                <div className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold px-4 py-2 flex items-center gap-1 uppercase tracking-wider border-b border-amber-500/20">
                   <AlertCircle className="h-3 w-3" /> Question & Answer
                 </div>
               )}
               {isAnnouncement && (
-                <div className="bg-primary/10 text-primary text-xs font-bold px-4 py-1 flex items-center gap-1 uppercase tracking-wider">
+                <div className="bg-primary/5 text-primary text-xs font-bold px-4 py-2 flex items-center gap-1 uppercase tracking-wider border-b border-primary/10">
                   <AlertCircle className="h-3 w-3" /> Announcement
                 </div>
               )}
-              <CardHeader className="flex flex-row items-start space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-start space-y-0 pb-3 pt-4 px-4">
                 <div className="flex items-center gap-3 flex-1">
-                  <Avatar>
+                  <Avatar className="h-10 w-10">
                     <AvatarImage src={post.profiles?.avatar_url || ""} />
                     <AvatarFallback>{post.profiles?.full_name?.charAt(0) || "?"}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold">{post.profiles?.full_name || "Unknown Devotee"}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-semibold text-[15px] leading-tight">{post.profiles?.full_name || "Unknown Devotee"}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                      <span className="text-[10px]">· 🌐</span>
                     </p>
                   </div>
                 </div>
                 {(user?.id === post.user_id || isAdmin) && (
-                  <Button variant="ghost" size="icon" onClick={() => deletePostMutation.mutate(post.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground">
+                        <span className="text-xl leading-none -mt-2">...</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => deletePostMutation.mutate(post.id)} className="text-destructive font-medium">
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete Post
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="whitespace-pre-wrap text-[15px]">{post.content}</p>
+              
+              <CardContent className="space-y-4 px-4 pb-2">
+                <p className="whitespace-pre-wrap text-[15px] text-foreground font-medium">{post.content}</p>
                 {post.image_url && (
-                  <div className="rounded-md overflow-hidden bg-muted">
-                    <img src={post.image_url} alt="Post media" className="w-full max-h-[500px] object-contain" />
+                  <div className="rounded-lg overflow-hidden border border-muted -mx-4 mt-3">
+                    <img src={post.image_url} alt="Post media" className="w-full object-cover max-h-[600px]" />
                   </div>
                 )}
+                
+                {/* Likes/Comments count display */}
+                <div className="flex justify-between items-center pt-2 pb-1 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    {post.community_likes.length > 0 && (
+                      <>
+                        <div className="bg-blue-500 rounded-full p-1 h-5 w-5 flex items-center justify-center">
+                          <Heart className="h-3 w-3 fill-white text-white" />
+                        </div>
+                        <span>{post.community_likes.length}</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    {post.community_comments.length > 0 && <span>{post.community_comments.length} comments</span>}
+                  </div>
+                </div>
               </CardContent>
-              <CardFooter className="flex flex-col border-t bg-muted/20 p-2">
-                <div className="flex w-full">
+
+              <CardFooter className="flex flex-col border-t px-4 py-1">
+                <div className="flex w-full justify-between items-center">
                   <Button
                     variant="ghost"
-                    className={`flex-1 gap-2 ${isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"}`}
+                    className={`flex-1 gap-2 rounded-lg py-6 ${isLiked ? "text-blue-600 font-semibold" : "text-muted-foreground font-medium"}`}
                     onClick={() => toggleLikeMutation.mutate({ postId: post.id, isLiked })}
                   >
                     <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-                    {post.community_likes.length} Likes
+                    Like
                   </Button>
                   <Button
                     variant="ghost"
-                    className="flex-1 gap-2 text-muted-foreground"
+                    className="flex-1 gap-2 text-muted-foreground font-medium rounded-lg py-6"
                     onClick={() => setActiveCommentPost(activeCommentPost === post.id ? null : post.id)}
                   >
                     <MessageSquare className="h-5 w-5" />
-                    {post.community_comments.length} Comments
+                    Comment
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="flex-1 gap-2 text-muted-foreground font-medium rounded-lg py-6"
+                    onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(post.content + "\n\nShared from Saksham Sangha Spark")}`, '_blank')}
+                  >
+                    <Send className="h-5 w-5" />
+                    Share
                   </Button>
                 </div>
 
                 {activeCommentPost === post.id && (
-                  <div className="w-full mt-4 space-y-4 px-2 pb-2">
-                    {post.community_comments.map((comment: any) => (
-                      <div key={comment.id} className="flex gap-3">
-                        <Avatar className="h-8 w-8">
+                  <div className="w-full mt-2 space-y-4 pb-4 border-t pt-4">
+                    {post.community_comments.map((comment: CommunityComment) => (
+                      <div key={comment.id} className="flex gap-2">
+                        <Avatar className="h-8 w-8 mt-1 shrink-0">
                           <AvatarImage src={comment.profiles?.avatar_url || ""} />
                           <AvatarFallback>{comment.profiles?.full_name?.charAt(0) || "?"}</AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 bg-muted p-3 rounded-2xl rounded-tl-none text-sm relative group">
-                          <p className="font-semibold text-xs mb-1">{comment.profiles?.full_name}</p>
-                          <p>{comment.content}</p>
+                        <div className="group relative flex flex-col max-w-[85%]">
+                          <div className="bg-muted/70 px-4 py-2 rounded-2xl rounded-tl-sm text-sm inline-block">
+                            <p className="font-semibold text-xs leading-tight mb-0.5">{comment.profiles?.full_name}</p>
+                            <p className="text-foreground font-medium leading-snug">{comment.content}</p>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground ml-2 mt-1">
+                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                          </span>
                           {(user?.id === comment.user_id || isAdmin) && (
                             <button
                               onClick={() => deleteCommentMutation.mutate(comment.id)}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-destructive hover:bg-destructive/10 p-1 rounded transition-opacity"
+                              className="absolute top-2 -right-8 opacity-0 group-hover:opacity-100 text-destructive hover:bg-destructive/10 p-1.5 rounded-full transition-opacity"
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -272,22 +391,34 @@ export default function Community() {
                         </div>
                       </div>
                     ))}
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        placeholder="Write a comment..."
-                        value={commentContent}
-                        onChange={(e) => setCommentContent(e.target.value)}
-                        className="rounded-full bg-muted border-none"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleCreateComment(post.id);
-                          }
-                        }}
-                      />
-                      <Button size="icon" className="rounded-full shrink-0" onClick={() => handleCreateComment(post.id)}>
-                        <Send className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-start gap-2 pt-2">
+                      <Avatar className="h-8 w-8 mt-1 shrink-0">
+                        <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+                        <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "?"}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 bg-muted/50 border rounded-2xl flex items-center pr-1 focus-within:ring-1 focus-within:ring-primary/30 focus-within:border-primary/30 transition-all">
+                        <Input
+                          placeholder="Write a comment..."
+                          value={commentContent}
+                          onChange={(e) => setCommentContent(e.target.value)}
+                          className="bg-transparent border-0 focus-visible:ring-0 shadow-none h-9 text-sm"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleCreateComment(post.id);
+                            }
+                          }}
+                        />
+                        <Button 
+                          size="icon" 
+                          variant="ghost"
+                          className={`h-7 w-7 rounded-full shrink-0 ${commentContent.trim() ? 'text-primary hover:bg-primary/10' : 'text-muted-foreground/50'}`}
+                          onClick={() => handleCreateComment(post.id)}
+                          disabled={!commentContent.trim()}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}

@@ -23,7 +23,8 @@ import TodoList from "./pages/TodoList";
 import Leaderboard from "./pages/Leaderboard";
 import Hierarchy from "./pages/Hierarchy";
 import AartiLibrary from "./pages/AartiLibrary";
-import Community from "./pages/Community";
+import DevoteeCommunity from "./pages/Community";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -40,7 +41,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           {showSplash && <SplashScreen onDone={handleSplashDone} />}
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AuthProvider>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
@@ -57,7 +58,8 @@ const App = () => {
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/hierarchy" element={<Hierarchy />} />
                   <Route path="/aarti" element={<AartiLibrary />} />
-                  <Route path="/community" element={<Community />} />
+                  <Route path="/community" element={<DevoteeCommunity />} />
+                  <Route path="/messages" element={<Messages />} />
                   <Route path="/admin" element={<Admin />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

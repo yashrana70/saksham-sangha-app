@@ -30,11 +30,19 @@ export default function VaishnavCalendar() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selected, setSelected] = useState<Date | undefined>(new Date());
   const [reminderEvent, setReminderEvent] = useState<Event | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("vaishnav_events")
+      const { data, error } = await supabase.from("vaishnav_events")
         .select("*").order("event_date");
+        
+      if (error) {
+        console.error("Supabase error:", error);
+        setFetchError(error.message);
+        return;
+      }
+      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const list = (data as any[]) || [];
       setEvents(list);
@@ -64,9 +72,11 @@ export default function VaishnavCalendar() {
   const eventsByDate = useMemo(() => {
     const m = new Map<string, Event[]>();
     events.forEach(e => {
-      const arr = m.get(e.event_date) || [];
+      // Normalize the date to YYYY-MM-DD to avoid timezone shifting issues and exact string mismatch
+      const dateKey = e.event_date.split('T')[0]; 
+      const arr = m.get(dateKey) || [];
       arr.push(e);
-      m.set(e.event_date, arr);
+      m.set(dateKey, arr);
     });
     return m;
   }, [events]);
@@ -90,6 +100,13 @@ export default function VaishnavCalendar() {
         </div>
         <Badge variant="outline" className="gap-1.5"><Bell className="h-3 w-3" /> Reminders 1–2 days before</Badge>
       </div>
+
+      {fetchError && (
+        <div className="p-4 bg-red-100 text-red-900 border border-red-300 rounded-lg">
+          <p className="font-bold">Error fetching calendar:</p>
+          <p className="text-sm font-mono mt-1">{fetchError}</p>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
         <Card className="shadow-elegant w-fit">

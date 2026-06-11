@@ -10,11 +10,13 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
+type RoleType = "admin" | "operator" | "volunteer" | "devotee";
+
 type NodeData = {
   id: string;
   name: string;
   parent_id: string | null;
-  role: string;
+  role: RoleType;
 };
 
 const HierarchyNode = ({ 
@@ -96,7 +98,7 @@ export default function Hierarchy() {
   
   // Edit State
   const [editingNode, setEditingNode] = useState<NodeData | null>(null);
-  const [editRole, setEditRole] = useState<string>("");
+  const [editRole, setEditRole] = useState<RoleType>("devotee");
   const [editParentId, setEditParentId] = useState<string>("none");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -134,9 +136,10 @@ export default function Hierarchy() {
         setNodesMap(map);
         setRootNodes(roots);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error("Failed to load hierarchy data: " + err.message);
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error("Failed to load hierarchy data: " + message);
     } finally {
       setLoading(false);
     }
@@ -163,7 +166,7 @@ export default function Hierarchy() {
         } else {
           const { error: roleErr } = await supabase.from("user_roles").upsert({
             user_id: editingNode.id,
-            role: editRole as any
+            role: editRole,
           }, { onConflict: "user_id" });
           if (roleErr) throw roleErr;
         }
@@ -181,8 +184,9 @@ export default function Hierarchy() {
       toast.success(`${editingNode.name} updated successfully!`);
       setEditingNode(null);
       loadData();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to save changes");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      toast.error(message || "Failed to save changes");
     } finally {
       setIsSaving(false);
     }

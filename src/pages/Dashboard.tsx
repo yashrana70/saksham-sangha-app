@@ -11,6 +11,14 @@ import logo from "@/assets/saksham-logo.png";
 
 type RankRow = { user_id: string; name: string; avg: number; days: number };
 type Birthday = { user_id: string; name: string; dob: string; days_until: number };
+type VaishnavEvent = {
+  id: string;
+  created_at: string;
+  description: string | null;
+  event_date: string;
+  event_type: string | null;
+  title: string;
+};
 
 const PRABHUPADA_QUOTES = [
   "Chant Hare Krishna and be happy.",
@@ -27,21 +35,23 @@ export default function Dashboard() {
   const [name, setName] = useState("Devotee");
   const [role, setRole] = useState<string>("devotee");
   const [stats, setStats] = useState({ entries: 0, totalRounds: 0 });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [upcoming, setUpcoming] = useState<any[]>([]);
+  const [upcoming, setUpcoming] = useState<VaishnavEvent[]>([]);
   const [topDevotees, setTopDevotees] = useState<RankRow[]>([]);
   const [showRankings, setShowRankings] = useState(false);
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [showBirthdays, setShowBirthdays] = useState(false);
-  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [recentEvents, setRecentEvents] = useState<VaishnavEvent[]>([]);
   const [showEvents, setShowEvents] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const quote = PRABHUPADA_QUOTES[new Date().getDate() % PRABHUPADA_QUOTES.length];
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
-      if (prof?.full_name) setName(prof.full_name);
+      const userName = prof?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Devotee";
+      setName(userName);
 
       const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
       if (roleData?.role) setRole(roleData.role);
@@ -63,8 +73,13 @@ export default function Dashboard() {
         if (after9pm && !filledToday && !sessionStorage.getItem(remindKey)) {
           sessionStorage.setItem(remindKey, "1");
           setTimeout(() => {
+            try {
+              const audio = new Audio("https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg");
+              audio.play().catch(() => {});
+            } catch (e) {}
+
             toast.warning("🪔 Reminder: You haven't filled today's sadhna yet. Please fill it!", {
-              duration: 10000,
+              duration: 15000,
               action: { label: "Fill now", onClick: () => (window.location.href = "/sadhna/new") },
             });
             // Browser notification (if permitted)
@@ -80,9 +95,9 @@ export default function Dashboard() {
           }, 1200);
         }
       }
-      const { data: ev } = await supabase.from("vaishnav_events")
+      const { data: ev } = await supabase.from<VaishnavEvent>("vaishnav_events")
         .select("*").gte("event_date", today).order("event_date").limit(5);
-      setUpcoming(ev || []);
+      setUpcoming(ev ?? []);
 
       if (ev && ev.length > 0) {
         const todayMs = new Date(today).getTime();
@@ -131,27 +146,14 @@ export default function Dashboard() {
         }
       }
 
-      // Schedule 9 PM reminder if before 9pm and not filled
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const filledTodayCheck = entries?.some((e: any) => e.entry_date === today);
-      const nowMs = Date.now();
-      const nineMs = new Date(); nineMs.setHours(21, 0, 0, 0);
-      if (!filledTodayCheck && nowMs < nineMs.getTime()) {
-        const delay = nineMs.getTime() - nowMs;
-        if ("Notification" in window && Notification.permission === "default") {
-          Notification.requestPermission();
-        }
-        setTimeout(() => {
-          toast.warning("🪔 Please fill today's sadhna — it's 9 PM!", {
-            duration: 15000,
-            action: { label: "Fill now", onClick: () => (window.location.href = "/sadhna/new") },
-          });
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Saksham Sadhu Sang 🪔", {
-              body: "Please fill your sadhna for today before sleeping.",
-            });
-          }
-        }, delay);
+      // Fetch announcements
+      const { data: ann } = await supabase.from("community_posts")
+        .select("id, content, created_at, profiles:user_id(full_name)")
+        .eq("post_type", "announcement")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (ann) {
+        setAnnouncements(ann);
       }
     })();
   }, [user]);
@@ -178,7 +180,7 @@ export default function Dashboard() {
               </p>
               {["admin", "operator", "volunteer"].includes(role) && (
                 <Button asChild variant="outline" className="mt-4 bg-white/10 border-white/30 text-white hover:bg-white/20 transition-colors">
-                  <a href="http://localhost:5174" target="_blank" rel="noopener noreferrer">
+                  <a href={import.meta.env.VITE_ADMIN_URL || "http://localhost:8081"} target="_blank" rel="noopener noreferrer">
                     Go to Dashboard
                   </a>
                 </Button>
@@ -202,6 +204,32 @@ export default function Dashboard() {
               </div>
             </div>
             <Button size="sm" variant="outline" onClick={() => setShowBirthdays(true)}>View</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {announcements.length > 0 && (
+        <Card className="border-primary bg-primary/5 shadow-elegant">
+          <CardHeader className="pb-3 border-b border-primary/10">
+            <CardTitle className="font-serif text-lg flex items-center gap-2 text-primary">
+              <Sparkles className="h-5 w-5" /> Important Announcements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            {announcements.map((ann) => (
+              <div key={ann.id} className="space-y-1">
+                <div className="flex justify-between items-baseline">
+                  <p className="text-xs font-semibold text-primary">{ann.profiles?.full_name}</p>
+                  <p className="text-[10px] text-muted-foreground">{new Date(ann.created_at).toLocaleDateString()}</p>
+                </div>
+                <p className="text-sm text-foreground">{ann.content}</p>
+              </div>
+            ))}
+            <div className="pt-2 border-t border-primary/10 text-center">
+              <Button variant="link" asChild className="text-xs h-auto p-0">
+                <Link to="/community">View Community Feed</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

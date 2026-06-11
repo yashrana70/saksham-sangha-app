@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Shield, Users, Search, BookOpen, ShieldOff, ShieldCheck, Eye, BarChart3, Trash2, Pencil } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Shield, Users, Search, BookOpen, ShieldOff, ShieldCheck, Eye, BarChart3, Trash2, Pencil, Settings2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { format, parseISO } from "date-fns";
@@ -36,6 +37,18 @@ type AdminEntry = {
   notes: string | null;
 };
 
+type FamilyMember = {
+  name?: string | null;
+  occupation?: string | null;
+  dob?: string | null;
+};
+
+type ProfileFamily = {
+  father?: FamilyMember | null;
+  mother?: FamilyMember | null;
+  siblings?: FamilyMember[];
+};
+
 type Profile = {
   id: string;
   full_name: string | null;
@@ -52,8 +65,8 @@ type Profile = {
   marital_status: string | null;
   address: string | null;
   photo_url: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  family: any;
+  family: ProfileFamily | null;
+  parent_id: string | null;
   created_at: string;
 };
 
@@ -71,8 +84,25 @@ export default function Admin() {
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [viewing, setViewing] = useState<Profile | null>(null);
   const [editing, setEditing] = useState<Profile | null>(null);
+  const [assigning, setAssigning] = useState<Profile | null>(null);
+  const [assignParentId, setAssignParentId] = useState<string>("none");
   const [editForm, setEditForm] = useState<Partial<Profile>>({});
   const [savingEdit, setSavingEdit] = useState(false);
+
+  const openAssign = (p: Profile) => {
+    setAssigning(p);
+    setAssignParentId(p.parent_id || "none");
+  };
+
+  const saveAssign = async () => {
+    if (!assigning) return;
+    const val = assignParentId === "none" ? null : assignParentId;
+    const { error } = await supabase.from("profiles").update({ parent_id: val }).eq("id", assigning.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Leader assigned successfully!");
+    setAssigning(null);
+    loadAll();
+  };
 
   const openEdit = (p: Profile) => {
     setEditing(p);
@@ -93,8 +123,7 @@ export default function Admin() {
   const saveEdit = async () => {
     if (!editing) return;
     setSavingEdit(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload: any = { ...editForm };
+    const payload: Partial<Profile> = { ...editForm };
     if (!payload.dob) payload.dob = null;
     const { error } = await supabase.from("profiles").update(payload).eq("id", editing.id);
     setSavingEdit(false);
@@ -114,20 +143,27 @@ export default function Admin() {
     () => new Set(roles.filter(r => r.role === "admin").map(r => r.user_id)),
     [roles]
   );
+  
+  const operatorIds = useMemo(
+    () => new Set(roles.filter(r => r.role === "operator").map(r => r.user_id)),
+    [roles]
+  );
+  
+  const volunteerIds = useMemo(
+    () => new Set(roles.filter(r => r.role === "volunteer").map(r => r.user_id)),
+    [roles]
+  );
 
   const loadAll = async () => {
     setLoading(true);
     const [{ data: e }, { data: p }, { data: r }] = await Promise.all([
-      supabase.from("sadhna_entries").select("*").order("entry_date", { ascending: false }).limit(1000),
-      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("id, user_id, role"),
+      supabase.from<AdminEntry>("sadhna_entries").select("*").order("entry_date", { ascending: false }).limit(1000),
+      supabase.from<Profile>("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from<Role>("user_roles").select("id, user_id, role"),
     ]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setEntries((e as any) || []);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setProfiles((p as any) || []);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setRoles((r as any) || []);
+    setEntries(e ?? []);
+    setProfiles(p ?? []);
+    setRoles(r ?? []);
     setLoading(false);
   };
 
@@ -191,8 +227,7 @@ export default function Admin() {
       "Japa Rounds", "Hearing (min)", "Hearing Topic",
       "Reading (min)", "Reading Topic", "Seva (min)", "Facilitator", "Notes",
     ];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const escape = (v: any) => {
+    const escape = (v: unknown) => {
       const s = v === null || v === undefined ? "" : String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
@@ -214,8 +249,7 @@ export default function Admin() {
       "Spiritual Friend", "Gender", "DOB", "Marital Status", "Education",
       "Profession", "Address", "Joined",
     ];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const escape = (v: any) => {
+    const escape = (v: unknown) => {
       const s = v === null || v === undefined ? "" : String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
@@ -243,9 +277,9 @@ export default function Admin() {
         URL.revokeObjectURL(url);
       }, 100);
       toast.success(`Downloading ${name}`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      toast.error("Download failed: " + (err?.message || "unknown"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "unknown";
+      toast.error("Download failed: " + message);
     }
   };
 
@@ -268,10 +302,35 @@ export default function Admin() {
     loadAll();
   };
 
+  const toggleOperator = async (userId: string, isOp: boolean) => {
+    if (isOp) {
+      const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "operator");
+      if (error) { toast.error(error.message); return; }
+      toast.success("Operator role removed");
+    } else {
+      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "operator" });
+      if (error) { toast.error(error.message); return; }
+      toast.success("Granted Operator role");
+    }
+    loadAll();
+  };
+
+  const toggleVolunteer = async (userId: string, isVol: boolean) => {
+    if (isVol) {
+      const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "volunteer");
+      if (error) { toast.error(error.message); return; }
+      toast.success("Volunteer role removed");
+    } else {
+      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "volunteer" });
+      if (error) { toast.error(error.message); return; }
+      toast.success("Granted Volunteer role");
+    }
+    loadAll();
+  };
+
   const removeDevotee = async (userId: string, name: string) => {
     if (userId === user?.id) { toast.error("You cannot remove yourself"); return; }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).rpc("admin_delete_devotee", { _user_id: userId });
+    const { error } = await supabase.rpc("admin_delete_devotee", { _user_id: userId });
     if (error) { toast.error(error.message); return; }
     toast.success(`${name || "Devotee"} removed`);
     loadAll();
@@ -308,7 +367,7 @@ export default function Admin() {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="devotees">Devotees</TabsTrigger>
           <TabsTrigger value="sadhna">Sadhna Entries</TabsTrigger>
-          <TabsTrigger value="roles">Manage Admins</TabsTrigger>
+          <TabsTrigger value="roles">Manage Devotees & Hierarchy</TabsTrigger>
         </TabsList>
 
         {/* Analytics Tab */}
@@ -487,7 +546,7 @@ export default function Admin() {
         <TabsContent value="roles">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
-              <CardTitle className="font-serif">Manage Admin Access</CardTitle>
+              <CardTitle className="font-serif">Manage Devotees & Hierarchy</CardTitle>
               <div className="relative">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input value={roleQ} onChange={e => setRoleQ(e.target.value)}
@@ -496,14 +555,18 @@ export default function Admin() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Promote devotees to admin so they can also view all data. You cannot remove your own admin role.
+                Set up your Hierarchy: Assign Devotees under Volunteers, Volunteers under Operators, and Operators under Admins.
               </p>
               <div className="space-y-2">
                 {filteredRoleProfiles.map(p => {
                   const isUserAdmin = adminIds.has(p.id);
+                  const isUserOperator = operatorIds.has(p.id);
+                  const isUserVolunteer = volunteerIds.has(p.id);
                   const isSelf = p.id === user?.id;
+                  const parentName = p.parent_id ? profileMap[p.parent_id]?.full_name || "Unknown" : "None";
+                  
                   return (
-                    <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-card/50">
+                    <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg border bg-card/50">
                       <div className="flex items-center gap-3 min-w-0">
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={p.photo_url || undefined} />
@@ -513,20 +576,34 @@ export default function Admin() {
                           <div className="font-medium truncate flex items-center gap-2">
                             {p.full_name || "—"}
                             {isUserAdmin && <Badge variant="secondary" className="text-[10px]">Admin</Badge>}
+                            {isUserOperator && !isUserAdmin && <Badge variant="secondary" className="text-[10px] bg-purple-500/20 text-purple-600">Operator</Badge>}
+                            {isUserVolunteer && !isUserAdmin && !isUserOperator && <Badge variant="secondary" className="text-[10px] bg-blue-500/20 text-blue-600">Volunteer</Badge>}
                             {isSelf && <Badge variant="outline" className="text-[10px]">You</Badge>}
                           </div>
                           <div className="text-xs text-muted-foreground truncate">{p.email}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">Leader: <span className="font-medium text-foreground">{parentName}</span></div>
                         </div>
                       </div>
-                      {isUserAdmin ? (
-                        <Button size="sm" variant="outline" disabled={isSelf} onClick={() => demote(p.id)}>
-                          <ShieldOff className="h-4 w-4 mr-1" /> Remove admin
+                      <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                        <Button size="sm" variant="ghost" onClick={() => openAssign(p)}>
+                          <Settings2 className="h-4 w-4 mr-1" /> Assign Leader
                         </Button>
-                      ) : (
-                        <Button size="sm" onClick={() => promote(p.id)}>
-                          <ShieldCheck className="h-4 w-4 mr-1" /> Make admin
+                        <Button size="sm" variant={isUserVolunteer ? "outline" : "secondary"} onClick={() => toggleVolunteer(p.id, isUserVolunteer)}>
+                          {isUserVolunteer ? "Remove Vol" : "Make Vol"}
                         </Button>
-                      )}
+                        <Button size="sm" variant={isUserOperator ? "outline" : "secondary"} onClick={() => toggleOperator(p.id, isUserOperator)}>
+                          {isUserOperator ? "Remove Op" : "Make Op"}
+                        </Button>
+                        {isUserAdmin ? (
+                          <Button size="sm" variant="outline" disabled={isSelf} onClick={() => demote(p.id)}>
+                            <ShieldOff className="h-4 w-4 mr-1" /> Remove Admin
+                          </Button>
+                        ) : (
+                          <Button size="sm" onClick={() => promote(p.id)}>
+                            <ShieldCheck className="h-4 w-4 mr-1" /> Make Admin
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -571,6 +648,44 @@ export default function Admin() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Assign Hierarchy Dialog */}
+      <Dialog open={!!assigning} onOpenChange={o => !o && setAssigning(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl">Assign Leader</DialogTitle>
+          </DialogHeader>
+          {assigning && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Who is leading or mentoring <b>{assigning.full_name || assigning.email}</b>?
+              </p>
+              <div>
+                <Label>Select Leader</Label>
+                <Select value={assignParentId} onValueChange={setAssignParentId}>
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select a leader" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Top Level)</SelectItem>
+                    {profiles
+                      .filter(p => p.id !== assigning.id)
+                      .map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.full_name || p.email}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setAssigning(null)}>Cancel</Button>
+                <Button onClick={saveAssign}>Save Assignment</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -589,8 +704,7 @@ function StatCard({ icon, label, value, accent }: { icon?: React.ReactNode; labe
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Field({ label, value }: { label: string; value: any }) {
+function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
@@ -600,8 +714,7 @@ function Field({ label, value }: { label: string; value: any }) {
 }
 
 function ProfileDetail({ p, isAdmin }: { p: Profile; isAdmin: boolean }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fam = (p.family as any) || {};
+  const fam = p.family ?? {};
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-4">
@@ -664,8 +777,7 @@ function ProfileDetail({ p, isAdmin }: { p: Profile; isAdmin: boolean }) {
               <div>
                 <div className="text-muted-foreground">Siblings:</div>
                 <ul className="list-disc list-inside">
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {fam.siblings.map((s: any, i: number) => (
+                  {fam.siblings.map((s, i) => (
                     <li key={i}>{s.name}{s.dob && ` • ${s.dob}`}</li>
                   ))}
                 </ul>
@@ -869,7 +981,7 @@ function AnalyticsPanel({
                     cx="50%"
                     cy="50%"
                     outerRadius={90}
-                    label={(entry: any) => `${entry.name} (${entry.value})`}
+                    label={({ name, value }: { name?: string; value?: number }) => `${name} (${value})`}
                   >
                     {levelDistribution.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
