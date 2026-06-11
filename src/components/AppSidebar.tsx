@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import { Home, User, BookOpenCheck, BarChart3, Calendar, CalendarDays, LogOut, Shield, ListChecks, Trophy, Network, BookOpen, Sun, Moon, Users, MessageCircle, Heart } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
