@@ -70,10 +70,10 @@ export function AppSidebar() {
               {isAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === "/admin"}>
-                    <Link to="/admin" className="flex items-center gap-3">
+                    <NavLink to="/admin" className="flex items-center gap-3">
                       <Shield className="h-4 w-4" />
                       {!collapsed && <span>Admin Dashboard</span>}
-                    </Link>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
