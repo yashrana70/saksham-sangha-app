@@ -387,9 +387,9 @@ export default function Auth() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div><Label>OPERATORS/VOLUNTEERS</Label>
+                      <div><Label>SPIRITUAL FRIEND</Label>
                         <Select value={reg.assignedMentor} onValueChange={v => setReg({...reg, assignedMentor: v})}>
-                          <SelectTrigger><SelectValue placeholder="Select OPERATOR/VOLUNTEER" /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder="Select SPIRITUAL FRIEND" /></SelectTrigger>
                           <SelectContent className="max-h-72">
                             {OPERATORS_VOLUNTEERS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                           </SelectContent>

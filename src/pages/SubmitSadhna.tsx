@@ -340,7 +340,7 @@ Daily Sadhana: ${new Date(f.entry_date).toLocaleDateString("en-IN")}
         <CardContent className="grid md:grid-cols-2 gap-4">
           <div><Label>Date *</Label><Input type="date" required value={f.entry_date} onChange={e => setF({ ...f, entry_date: e.target.value })} /></div>
           <div><Label>Devotee Name *</Label><Input required value={f.devotee_name} onChange={e => setF({ ...f, devotee_name: e.target.value })} /></div>
-          <div><Label>Operator/Volunteer Name *</Label><Input required value={f.assigned_mentor} onChange={e => setF({ ...f, assigned_mentor: e.target.value })} /></div>
+          <div><Label>Spiritual Friend Name *</Label><Input required value={f.assigned_mentor} onChange={e => setF({ ...f, assigned_mentor: e.target.value })} /></div>
           <div><Label>Target Rounds *</Label><Input type="number" min="1" max="200" required value={f.target_rounds} onChange={e => setF({ ...f, target_rounds: +e.target.value })} /></div>
 
           <div><Label>Japa Rounds Completed *</Label><Input type="number" min="0" max="200" required value={f.japa_rounds} onChange={e => setF({ ...f, japa_rounds: +e.target.value })} /></div>
@@ -436,7 +436,7 @@ Daily Sadhana: ${new Date(f.entry_date).toLocaleDateString("en-IN")}
       {shared && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="p-4 text-sm">
-            🪔 Submitted! Use the share buttons above to send your report to your Operator/Volunteer.
+            🪔 Submitted! Use the share buttons above to send your report to your Spiritual Friend.
           </CardContent>
         </Card>
       )}
