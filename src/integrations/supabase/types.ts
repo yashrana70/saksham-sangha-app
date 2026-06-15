@@ -378,6 +378,65 @@ export type Database = {
           }
         ]
       }
+      community_poll_options: {
+        Row: {
+          id: string
+          post_id: string
+          option_text: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          option_text: string
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          option_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_poll_options_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      community_poll_votes: {
+        Row: {
+          id: string
+          option_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          option_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_poll_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "community_poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       announcements: {
         Row: {
           created_at: string | null

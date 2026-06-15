@@ -38,6 +38,19 @@ type CommunityComment = {
   profiles: CommunityProfile | null;
 };
 
+type CommunityPollVote = {
+  id: string;
+  user_id: string;
+  option_id: string;
+};
+
+type CommunityPollOption = {
+  id: string;
+  post_id: string;
+  option_text: string;
+  community_poll_votes: CommunityPollVote[];
+};
+
 type CommunityPost = {
   id: string;
   user_id: string;
@@ -48,6 +61,7 @@ type CommunityPost = {
   profiles: CommunityProfile | null;
   community_likes: CommunityLike[];
   community_comments: CommunityComment[];
+  community_poll_options: CommunityPollOption[];
 };
 
 export default function Community() {
@@ -59,6 +73,8 @@ export default function Community() {
   const [newPostContent, setNewPostContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [postType, setPostType] = useState("standard");
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [isCreatingPoll, setIsCreatingPoll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
   const [commentContent, setCommentContent] = useState("");
@@ -72,7 +88,8 @@ export default function Community() {
           *,
           profiles:user_id (id, full_name, avatar_url),
           community_likes (id, user_id),
-          community_comments (id, content, created_at, user_id, profiles:user_id (id, full_name, avatar_url))
+          community_comments (id, content, created_at, user_id, profiles:user_id (id, full_name, avatar_url)),
+          community_poll_options (id, post_id, option_text, community_poll_votes (id, user_id, option_id))
         `)
         .order("created_at", { ascending: false });
 
@@ -91,6 +108,9 @@ export default function Community() {
         queryClient.invalidateQueries({ queryKey: ["community_posts"] });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "community_likes" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["community_posts"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "community_poll_votes" }, () => {
         queryClient.invalidateQueries({ queryKey: ["community_posts"] });
       })
       .subscribe();
@@ -113,13 +133,27 @@ export default function Community() {
         uploadedImageUrl = data.publicUrl;
       }
 
-      const { error } = await supabase.from("community_posts").insert({
+      const finalPostType = isCreatingPoll ? "poll" : postType;
+      const { data: postData, error } = await supabase.from("community_posts").insert({
         user_id: user!.id,
         content: newPostContent,
         image_url: uploadedImageUrl,
-        post_type: postType,
-      });
+        post_type: finalPostType,
+      }).select().single();
       if (error) throw error;
+
+      if (isCreatingPoll && postData) {
+        const validOptions = pollOptions.filter(opt => opt.trim() !== "");
+        if (validOptions.length > 0) {
+          const { error: pollError } = await supabase.from("community_poll_options").insert(
+            validOptions.map(opt => ({
+              post_id: postData.id,
+              option_text: opt.trim()
+            }))
+          );
+          if (pollError) throw pollError;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["community_posts"] });
@@ -127,6 +161,8 @@ export default function Community() {
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       setPostType("standard");
+      setIsCreatingPoll(false);
+      setPollOptions(["", ""]);
       toast({ title: "Post created!" });
     },
     onError: (error: unknown) => {
@@ -159,6 +195,26 @@ export default function Community() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["community_posts"] });
     },
+  });
+
+  const votePollMutation = useMutation({
+    mutationFn: async (optionId: string) => {
+      const { error } = await supabase.from("community_poll_votes").insert({
+        option_id: optionId,
+        user_id: user!.id
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community_posts"] });
+    },
+    onError: (error: any) => {
+      if (error.code === '23505') {
+        toast({ title: "You have already voted on this option!", variant: "destructive" });
+      } else {
+        toast({ title: "Failed to cast vote", description: error.message, variant: "destructive" });
+      }
+    }
   });
 
   const createCommentMutation = useMutation({
@@ -227,6 +283,39 @@ export default function Community() {
               </Button>
             </div>
           )}
+          
+          {isCreatingPoll && (
+            <div className="pt-2 pb-3 space-y-2">
+              <p className="text-sm font-semibold text-muted-foreground ml-1">Poll Options</p>
+              {pollOptions.map((opt, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <Input 
+                    placeholder={`Option ${idx + 1}`} 
+                    value={opt} 
+                    onChange={e => {
+                      const newOpts = [...pollOptions];
+                      newOpts[idx] = e.target.value;
+                      setPollOptions(newOpts);
+                    }}
+                    className="flex-1"
+                  />
+                  {pollOptions.length > 2 && (
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0 h-9 w-9" onClick={() => {
+                      setPollOptions(pollOptions.filter((_, i) => i !== idx));
+                    }}>
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < 5 && (
+                <Button variant="outline" size="sm" type="button" onClick={() => setPollOptions([...pollOptions, ""])} className="mt-1">
+                  + Add Option
+                </Button>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between pt-2 border-t flex-wrap gap-2">
             <div className="flex gap-1 flex-wrap">
               <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={(e) => {
@@ -237,7 +326,10 @@ export default function Community() {
               <Button type="button" variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} className="text-muted-foreground hover:bg-muted/50 rounded-lg">
                 <ImageIcon className="h-5 w-5 mr-2 text-green-500" /> Photo/Video
               </Button>
-              {isAdmin && (
+              <Button type="button" variant={isCreatingPoll ? "secondary" : "ghost"} size="sm" onClick={() => setIsCreatingPoll(!isCreatingPoll)} className="text-muted-foreground hover:bg-muted/50 rounded-lg">
+                <BarChart3 className="h-5 w-5 mr-2 text-blue-500" /> Poll
+              </Button>
+              {isAdmin && !isCreatingPoll && (
                 <Select value={postType} onValueChange={setPostType}>
                   <SelectTrigger className="w-[140px] h-9 border-0 bg-transparent shadow-none hover:bg-muted/50 text-muted-foreground font-medium">
                     <SelectValue placeholder="Type" />
@@ -267,6 +359,18 @@ export default function Community() {
           const isLiked = post.community_likes.some(like => like.user_id === user?.id);
           const isQnA = post.post_type === "qna";
           const isAnnouncement = post.post_type === "announcement";
+          const isPoll = post.post_type === "poll";
+          
+          let totalVotes = 0;
+          let userVotedOptionId: string | null = null;
+          if (isPoll && post.community_poll_options) {
+            post.community_poll_options.forEach(opt => {
+              totalVotes += opt.community_poll_votes?.length || 0;
+              if (opt.community_poll_votes?.some(v => v.user_id === user?.id)) {
+                userVotedOptionId = opt.id;
+              }
+            });
+          }
 
           return (
             <Card key={post.id} className={`shadow-sm border bg-card mb-4 ${isQnA ? 'border-amber-400 border-2' : ''} ${isAnnouncement ? 'border-primary border-2' : ''}`}>
@@ -315,6 +419,41 @@ export default function Community() {
                 {post.image_url && (
                   <div className="rounded-lg overflow-hidden border border-muted -mx-4 mt-3">
                     <img src={post.image_url} alt="Post media" className="w-full object-cover max-h-[600px]" />
+                  </div>
+                )}
+                
+                {isPoll && post.community_poll_options && post.community_poll_options.length > 0 && (
+                  <div className="mt-4 space-y-2 border rounded-xl p-3 bg-muted/20">
+                    <p className="font-semibold text-sm mb-3">Poll Options:</p>
+                    {post.community_poll_options.map(opt => {
+                      const optVotes = opt.community_poll_votes?.length || 0;
+                      const percent = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+                      const hasVotedThis = userVotedOptionId === opt.id;
+                      
+                      return (
+                        <div key={opt.id} className="relative group overflow-hidden border rounded-lg hover:border-primary/50 transition-colors">
+                          <div 
+                            className="absolute top-0 left-0 bottom-0 bg-primary/20 transition-all duration-500 ease-out" 
+                            style={{ width: `${percent}%` }}
+                          />
+                          <button
+                            disabled={userVotedOptionId !== null || votePollMutation.isPending}
+                            onClick={() => votePollMutation.mutate(opt.id)}
+                            className="relative w-full text-left px-4 py-2 flex items-center justify-between min-h-[44px] disabled:opacity-100 disabled:cursor-default"
+                          >
+                            <span className={`font-medium text-sm ${hasVotedThis ? 'font-bold' : ''}`}>
+                              {opt.option_text}
+                            </span>
+                            {(userVotedOptionId !== null) && (
+                              <span className="text-xs font-semibold text-muted-foreground ml-2">
+                                {percent}% ({optVotes})
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-muted-foreground text-right mt-2">{totalVotes} total votes</p>
                   </div>
                 )}
                 
