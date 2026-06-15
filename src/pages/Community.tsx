@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, MessageSquare, Trash2, Send, ImageIcon, AlertCircle, X as XIcon } from "lucide-react";
+import { Heart, MessageSquare, Trash2, Send, ImageIcon, AlertCircle, X as XIcon, BarChart3 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
