@@ -10,8 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, ArrowLeft, Sun, Moon } from "lucide-react";
 import logo from "@/assets/saksham-logo.png";
+import { useTheme } from "next-themes";
 
 const DEVOTEE_LEVELS = [
   { value: "DYS", label: "DYS" },
@@ -86,6 +87,7 @@ export default function Auth() {
   const nav = useNavigate();
   const [tab, setTab] = useState("login");
   const [mode, setMode] = useState<Mode>("tabs");
+  const { theme, setTheme } = useTheme();
 
   // login
   const [loginEmail, setLoginEmail] = useState("");
@@ -246,6 +248,14 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-soft p-4 relative overflow-hidden">
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-4 right-4 z-50 rounded-full bg-background/50 backdrop-blur-sm border shadow-sm"
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      >
+        {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </Button>
       {/* Decorative glows */}
       <div className="pointer-events-none absolute -top-32 -left-32 h-80 w-80 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-secondary/20 blur-3xl" />
