@@ -124,7 +124,7 @@ export default function Donation() {
             </div>
 
             <Button variant="outline" className="w-full max-w-[250px] gap-2 border-primary/20 hover:bg-primary/5" asChild>
-              <a href="#" target="_blank" rel="noreferrer">
+              <a href="https://rzp.io/rzp/saksham108" target="_blank" rel="noreferrer">
                 <ExternalLink className="w-4 h-4" />
                 Pay via Razorpay Link
               </a>
