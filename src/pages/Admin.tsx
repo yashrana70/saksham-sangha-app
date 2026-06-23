@@ -73,12 +73,25 @@ type Profile = {
 
 type Role = { id: string; user_id: string; role: string };
 
+type Donation = {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  donor_name: string | null;
+  mobile_number: string | null;
+  email: string | null;
+  amount: number;
+  payment_status: string;
+  razorpay_payment_id: string | null;
+};
+
 export default function Admin() {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
   const [entries, setEntries] = useState<AdminEntry[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [roleQ, setRoleQ] = useState("");
@@ -159,14 +172,20 @@ export default function Admin() {
 
   const loadAll = async () => {
     setLoading(true);
-    const [{ data: e }, { data: p }, { data: r }] = await Promise.all([
-      supabase.from<AdminEntry>("sadhna_entries").select("*").order("entry_date", { ascending: false }).limit(1000),
-      supabase.from<Profile>("profiles").select("*").order("created_at", { ascending: false }),
-      supabase.from<Role>("user_roles").select("id, user_id, role"),
+    const [{ data: e }, { data: p }, { data: r }, { data: d }] = await Promise.all([
+      supabase.from("sadhna_entries").select("*").order("entry_date", { ascending: false }).limit(1000),
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("user_roles").select("id, user_id, role"),
+      supabase.from("donations").select("*").order("created_at", { ascending: false }),
     ]);
-    setEntries(e ?? []);
-    setProfiles(p ?? []);
-    setRoles(r ?? []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setEntries((e as any) ?? []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setProfiles((p as any) ?? []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setRoles((r as any) ?? []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setDonations((d as any) ?? []);
     setLoading(false);
   };
 
@@ -249,6 +268,23 @@ export default function Admin() {
     });
     const csv = [headers.join(","), ...rows].join("\n");
     downloadCSV(csv, `saksham-sadhna-${month}.csv`);
+  };
+
+  const exportDonationsCSV = () => {
+    const headers = ["Date", "Donor Name", "Amount (INR)", "Status", "Payment ID", "Email", "Phone", "Linked Account"];
+    const escape = (v: unknown) => {
+      const s = v === null || v === undefined ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = donations.map(d => {
+      const linkedName = d.user_id ? profileMap[d.user_id]?.full_name || "Unknown User" : "Guest";
+      return [
+        d.created_at?.slice(0, 10), d.donor_name, d.amount, d.payment_status,
+        d.razorpay_payment_id, d.email, d.mobile_number, linkedName
+      ].map(escape).join(",");
+    });
+    const csv = [headers.join(","), ...rows].join("\n");
+    downloadCSV(csv, `saksham-donations.csv`);
   };
 
   const exportProfilesCSV = () => {
@@ -376,6 +412,7 @@ export default function Admin() {
           <TabsTrigger value="devotees">Devotees</TabsTrigger>
           <TabsTrigger value="sadhna">Sadhna Entries</TabsTrigger>
           <TabsTrigger value="roles">Manage Devotees & Hierarchy</TabsTrigger>
+          <TabsTrigger value="donations" className="text-amber-600 data-[state=active]:text-amber-700">Donations & Seva</TabsTrigger>
         </TabsList>
 
         {/* Analytics Tab */}
@@ -632,6 +669,68 @@ export default function Admin() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Donations Tab */}
+        <TabsContent value="donations">
+          <Card className="border-amber-200">
+            <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap bg-amber-50 rounded-t-xl border-b border-amber-100">
+              <CardTitle className="font-serif text-amber-900">Donations & Seva Impact</CardTitle>
+              <Button onClick={exportDonationsCSV} variant="outline" size="sm" className="bg-white border-amber-200 text-amber-700 hover:bg-amber-100 hover:text-amber-800">
+                <Download className="h-4 w-4 mr-2" /> Export Donations CSV
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6">
+                <StatCard label="Total Donations" value={donations.length} accent />
+                <StatCard label="Total Collection" value={donations.filter(d => d.payment_status === 'captured').reduce((s,d) => s + Number(d.amount), 0)} accent />
+                <StatCard label="Captured" value={donations.filter(d => d.payment_status === 'captured').length} />
+                <StatCard label="Pending/Failed" value={donations.filter(d => d.payment_status !== 'captured').length} />
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Donor Info</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Payment ID</TableHead>
+                      <TableHead>Linked User</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {donations.length === 0 && (
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                        No donations recorded yet.
+                      </TableCell></TableRow>
+                    )}
+                    {donations.map(d => (
+                      <TableRow key={d.id}>
+                        <TableCell className="text-xs">{d.created_at ? format(parseISO(d.created_at), "dd MMM yyyy") : "—"}</TableCell>
+                        <TableCell>
+                          <div className="font-medium text-sm">{d.donor_name || "Unknown"}</div>
+                          <div className="text-[10px] text-muted-foreground">{d.email || d.mobile_number || "—"}</div>
+                        </TableCell>
+                        <TableCell className="font-bold text-green-600">₹{d.amount}</TableCell>
+                        <TableCell>
+                          <Badge variant={d.payment_status === 'captured' ? 'default' : 'secondary'} className={d.payment_status === 'captured' ? "bg-green-500 hover:bg-green-600" : ""}>
+                            {d.payment_status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs font-mono">{d.razorpay_payment_id || "—"}</TableCell>
+                        <TableCell className="text-xs">
+                          {d.user_id ? profileMap[d.user_id]?.full_name || "Unknown" : "Guest"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
       </Tabs>
 
       {/* Profile detail dialog */}

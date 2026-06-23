@@ -4,6 +4,7 @@ import { AppSidebar } from "./AppSidebar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { GlobalAlarm } from "./GlobalAlarm";
 import { MorningJapaPopup } from "./MorningJapaPopup";
+import GlobalDonate from "./GlobalDonate";
 import { useI18n } from "@/lib/i18n";
 
 export default function AppLayout() {
@@ -13,6 +14,7 @@ export default function AppLayout() {
       <div className="min-h-screen flex w-full bg-gradient-soft">
         <GlobalAlarm />
         <MorningJapaPopup />
+        <GlobalDonate />
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <header className="h-14 flex items-center border-b bg-card/60 backdrop-blur px-3 sticky top-0 z-30">
